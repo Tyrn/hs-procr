@@ -12,6 +12,7 @@ import Data.List hiding (find)
 import Data.List.Split
 import qualified Data.Text as T
 import System.Environment
+import qualified Control.Foldl as F
 
 data Settings = Settings
   { sVerbose           :: Bool
@@ -166,9 +167,12 @@ makeInitials grandName =
 
 groom :: FilePath -> FilePath -> Int -> IO ()
 groom src dst cnt = do
+  -- ~ mapM_ putStrLn (listDir src)
   view (ls src)
-  return ()
+  -- ~ return ()
 
+listDir :: FilePath -> IO [FilePath]
+listDir src = fold (lstree src) F.list
 
 buildAlbum :: Settings -> IO ()
 buildAlbum args = do
