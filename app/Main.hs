@@ -3,14 +3,15 @@ module Main ( main
             ) where
 
 import Lib
-import Turtle hiding (printf, stdout, stderr)
+import Turtle hiding (printf, stdout, stderr, find)
 import Prelude hiding (FilePath)
 import System.IO hiding (FilePath, stdout, stderr)
 import Text.Regex.TDFA
 import Text.Printf
-import Data.List
+import Data.List hiding (find)
 import Data.List.Split
 import qualified Data.Text as T
+import System.Environment
 
 data Settings = Settings
   { sVerbose           :: Bool
@@ -160,14 +161,27 @@ makeInitials grandName =
   let parts = splitOn "-" grandName
       splitPart = \part -> concat (part =~ ("[^ \t]+" :: String) :: [[String]])
       inits = (\part -> intercalate "." [[head w] | w <- splitPart part]) <$> parts
-  in  T.toUpper $ T.pack $ intercalate "-" inits ++ "."
+  in  T.toUpper $ fromString $ intercalate "-" inits ++ "."
 
 
-buildSettings :: IO ()
-buildSettings = do
-  opt <- options description settingsP
-  printOptions opt
+groom :: FilePath -> FilePath -> Int -> IO ()
+groom src dst cnt = do
+  view (ls src)
+  return ()
+
+
+buildAlbum :: Settings -> IO ()
+buildAlbum args = do
+  printOptions args
+  groom (sSrc args) (sDst args) 42
+
+
+copyAlbum :: Settings -> IO ()
+copyAlbum args = do
+  buildAlbum args
 
 
 main :: IO ()
-main = buildSettings
+main = do
+  args <- options description settingsP
+  copyAlbum args
