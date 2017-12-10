@@ -113,33 +113,6 @@ strStripNumbers str =
   in  [read i :: Int | i <- numbers]
 
 
--- | Compares lists of integers using "string semantics"
---
--- Examples:
---
--- >>> cmpstrC [] []
--- 0
--- >>> cmpstrC [11, 2] [11, 2]
--- 0
--- >>> cmpstrC [3] []
--- 1
--- >>> cmpstrC [1, 2, 3] [1, 2, 3, 4, 5]
--- -1
--- >>> cmpstrC [1, 4] [1, 4, 16]
--- -1
--- >>> cmpstrC [2, 8] [2, 2, 3]
--- 1
--- >>> cmpstrC [0, 0, 2, 4] [0, 0, 15]
--- -1
--- >>> cmpstrC [0, 13] [0, 2, 2]
--- 1
-cmpstrC :: [Int] -> [Int] -> Int
-cmpstrC x y
-  | x == y = 0
-  | x < y = -1
-  | otherwise = 1
-
-
 -- | If both strings contain digits, returns numerical comparison based on the numeric
 -- | values embedded in the strings, otherwise returns the standard string comparison.
 -- | The idea of the natural sort as opposed to the standard lexicographic sort is one of coping
@@ -157,9 +130,9 @@ cmpstrNaturally :: String -> String -> Ordering
 cmpstrNaturally x y =
   let nx = strStripNumbers x
       ny = strStripNumbers y
-  in if nx /= [] && ny /=  []
-     then compare nx ny
-     else compare x y
+  in  if nx /= [] && ny /=  []
+      then compare nx ny
+      else compare x y
 
 
 -- | Reduces a string of names to initials
