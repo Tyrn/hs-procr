@@ -32,6 +32,8 @@ dependencies:
 - directory
 - filemanip
 - foldl
+- extra
+- mtl
 
 library:
   source-dirs: src

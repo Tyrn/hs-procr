@@ -12,7 +12,8 @@ import Data.List hiding (find)
 import Data.List.Split
 import qualified Data.Text as T
 import System.Environment
-import qualified Control.Foldl as F
+import qualified Control.Foldl as FL
+import Control.Monad.Extra
 
 data Settings = Settings
   { sVerbose           :: Bool
@@ -58,8 +59,8 @@ settingsP =
 
 description :: Description
 description =
-  "pch \"Procrustes\" SmArT is a CLI utility for copying subtrees containing supported audio\n\
-  \files in sequence, naturally sorted.\n\
+  "pch \"Procrustes\" SmArT is a CLI utility for copying subtrees containing supported\n\
+  \audio files in sequence, naturally sorted.\n\
   \The end result is a \"flattened\" copy of the source subtree. \"Flattened\" means\n\
   \that only a namesake of the root source directory is created, where all the files get\n\
   \copied to, names prefixed with a serial number. Tags \"Track\" and \"Tracks Total\" \n\
@@ -165,19 +166,69 @@ makeInitials grandName =
   in  T.toUpper $ fromString $ intercalate "-" inits ++ "."
 
 
-groom :: FilePath -> FilePath -> Int -> IO ()
-groom src dst cnt = do
-  -- ~ mapM_ putStrLn (listDir src)
-  view (ls src)
-  -- ~ return ()
+-- | Extracts String From FilePath (unsafe and unofficial)
+strp :: FilePath -> String
+strp path =
+  let parts = splitOn "\"" (show path)
+  in  parts !! 1
 
-listDir :: FilePath -> IO [FilePath]
-listDir src = fold (lstree src) F.list
+-- | Serves a list of directories and a list of files
+-- | of a given parent
+listDir :: FilePath -> IO ([FilePath], [FilePath])
+listDir src = do
+  list <- fold (ls src) FL.list
+  partitionM testdir list
+
+
+-- ~ traverseFlatDst :: FilePath -> Int -> Int -> [Int] -> FilePath -> IO ()
+-- ~ traverseFlatDst dstRoot total totw cnt srcDir = do
+  -- ~ (dirs, files) <- listDir srcDir
+  -- ~ let iterate = (\(count, file) -> putStrLn (printf "%d: %s" count (strp file)))
+  -- ~ mapM_  iterate (zip cnt files) -- tracing
+  -- ~ let traverse = traverseFlatDst dstRoot total totw cnt
+  -- ~ mapM_ traverse dirs
+
+
+printPath :: (Int, FilePath) -> IO ()
+printPath (n, file) = do
+  putStrLn (printf "%d : %s" n (strp file))
+
+traverseFlatDst :: FilePath -> IO ()
+traverseFlatDst =
+  let loop i srcDir = do
+        (dirs, files) <- listDir srcDir
+        mapM_ printPath $ zip [i..] files
+        mapM_ (loop (i + length files)) dirs
+  in  loop 0
+
+
+-- | Trace path list
+putFilePaths :: [FilePath] -> IO ()
+putFilePaths pathList = do
+  mapM_ (\path -> putStrLn $ strp path) pathList
+
+
+groom :: FilePath -> FilePath -> Int -> IO ()
+groom src dst total = do
+  (dirs, files) <- listDir src
+  let totWidth = length $ show total
+  traverseFlatDst {-dst total totWidth [0..]-} src
+  putStrLn (printf "total: %d, width: %d" total totWidth)
+
+
+filterAudio :: [FilePath] -> [FilePath]
+filterAudio pathList = pathList
+
+
+listTree :: FilePath -> IO [FilePath]
+listTree src = fold (lstree src) FL.list
+
 
 buildAlbum :: Settings -> IO ()
 buildAlbum args = do
   printOptions args
-  groom (sSrc args) (sDst args) 42
+  flatTree <- listTree (sSrc args) -- Counting files for future reference
+  groom (sSrc args) (sDst args) (length $ filterAudio flatTree)
 
 
 copyAlbum :: Settings -> IO ()
