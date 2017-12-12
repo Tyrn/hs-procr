@@ -4,6 +4,7 @@ module Lib
     , wrap
     , makeCounter
     , Counter
+    , isAudioFile
     , zeroPad
     , strStripNumbers
     , cmpstrNaturally
@@ -114,6 +115,15 @@ wrap = fromString
 
 {- String utilities -}
 
+
+-- | Returns True in case of audio file extension
+isAudioFile :: FilePath -> Bool
+isAudioFile file =
+  let  ext = case extension file of
+               Just ext -> (T.unpack $ T.toUpper ext)
+               Nothing -> ""
+  in   elem ext ["MP3", "M4A", "M4B", "OGG", "WMA", "FLAC"]
+       
 
 -- | Returns a zero-padded num literal
 --

@@ -20,8 +20,10 @@ listDir :: Settings -> FilePath -> IO ([FilePath], [FilePath])
 listDir args src = do
   list <- fold (ls src) FL.list
   (dirs, files) <- partitionM testdir list
-  let sDirs = sortBy (\x y -> cmpstrNaturally (strp x) (strp y)) dirs
-  let sFiles = sortBy (\x y -> cmpstrNaturally (strp $ dropExtension x) (strp $ dropExtension y)) files
+  let sDirs  = sortBy (\x y -> cmpstrNaturally (strp x) (strp y)) dirs
+  let sFiles = sortBy (\x y -> cmpstrNaturally (strp $ dropExtension x)
+                                               (strp $ dropExtension y))
+                                               (filter isAudioFile files)
   return (sDirs, sFiles)
 
 
@@ -32,10 +34,10 @@ shapeDst args dstRoot total totw n dstStep srcFile =
                  else zeroPad n totw ++ "-"
       name   = case (sUnifiedName args) of
                  Just uName -> T.unpack uName
-                 Nothing -> strp $ dropExtension $ filename srcFile
+                 Nothing    -> strp $ dropExtension $ filename srcFile
       ext    = case extension srcFile of
-                 Just ext -> "." ++ T.unpack ext
-                 Nothing -> ""
+                 Just ext   -> "." ++ T.unpack ext
+                 Nothing    -> ""
   in  dstRoot </> dstStep </> fromString (prefix ++ name ++ ext)
 
 
@@ -64,19 +66,17 @@ groom args total = do
   putStrLn (printf "total: %d, width: %d" total totWidth)
 
 
-filterAudio :: [FilePath] -> [FilePath]
-filterAudio pathList = pathList
-
-
 listTree :: FilePath -> IO [FilePath]
-listTree src = fold (lstree src) FL.list
+listTree src = do
+  lst <- fold (lstree src) FL.list
+  return (filter isAudioFile lst)
 
 
 buildAlbum :: Settings -> IO ()
 buildAlbum args = do
   printOptions args
-  flatTree <- listTree (sSrc args) -- Counting files for future reference
-  groom args (length $ filterAudio flatTree)
+  flatTree <- listTree (sSrc args)
+  groom args (length flatTree)      -- Counting files for future reference
 
 
 copyAlbum :: Settings -> IO ()
