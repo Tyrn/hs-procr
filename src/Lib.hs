@@ -1,4 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+
+
+-- | Support for Procrustes SmArT utility (audio album builder).
 module Lib
     ( strp
     , wrap
@@ -30,6 +33,7 @@ import Data.List hiding (find)
 {- Command line parser -}
 
 
+-- | Represents command line options.
 data Settings = Settings
   { sVerbose           :: Bool
   , sDropTracknumber   :: Bool
@@ -50,8 +54,9 @@ data Settings = Settings
   , sDst               :: FilePath
   }
 
-settingsP :: Parser Settings
 
+-- | Command line options definition.
+settingsP :: Parser Settings
 settingsP =
   Settings <$> switch "verbose" 'v' "Unless verbose, just progress bar is shown"
            <*> switch "droptracknumber" 'd' "Do not set track numbers"
@@ -72,6 +77,7 @@ settingsP =
            <*> argPath "dst" "Destination directory"
 
 
+-- | Utility description (help screen header).
 description :: Description
 description =
   "pch \"Procrustes\" SmArT is a CLI utility for copying subtrees containing supported\n\
@@ -86,9 +92,11 @@ description =
 
 {- Counter, mostly global -}
 
-
+-- | Represents a nonlocal counter.
 type Counter = Int -> IO Int
 
+
+-- | Returns a function capable of returning increasing values (counter).
 makeCounter :: IO Counter
 makeCounter = do
   r <- newIORef 0
@@ -100,15 +108,15 @@ makeCounter = do
 {- FilePath helpers -}
 
 
--- | Extracts String From FilePath (unsafe and unofficial)
--- | No double quotes allowed in paths
+-- | Extracts String From FilePath (unsafe and unofficial).
+-- No double quotes allowed in paths.
 strp :: FilePath -> String
 strp path =
   let parts = splitOn "\"" (show path)
   in  parts !! 1
 
 
--- | Constructs FilePath
+-- | Constructs FilePath.
 wrap :: String -> FilePath
 wrap = fromString
 
@@ -116,7 +124,7 @@ wrap = fromString
 {- String utilities -}
 
 
--- | Returns True in case of audio file extension
+-- | Returns True in case of audio file extension.
 isAudioFile :: FilePath -> Bool
 isAudioFile file =
   let  ext = case extension file of
@@ -125,7 +133,7 @@ isAudioFile file =
   in   elem ext ["MP3", "M4A", "M4B", "OGG", "WMA", "FLAC"]
        
 
--- | Returns a zero-padded num literal
+-- | Returns a zero-padded numeric literal.
 --
 -- Examples:
 --
@@ -137,7 +145,7 @@ zeroPad :: Int -> Int -> String
 zeroPad n len = printf ("%0" ++ (printf "%d" len) ++ "d") n
 
 
--- | Returns a list of integer numbers embedded in a string arguments
+-- | Returns a list of integer numbers embedded in a string arguments.
 --
 -- Examples:
 --
@@ -152,9 +160,9 @@ strStripNumbers str =
 
 
 -- | If both strings contain digits, returns numerical comparison based on the numeric
--- | values embedded in the strings, otherwise returns the standard string comparison.
--- | The idea of the natural sort as opposed to the standard lexicographic sort is one of coping
--- | with the possible absence of the leading zeros in 'numbers' of files or directories
+-- values embedded in the strings, otherwise returns the standard string comparison.
+-- The idea of the natural sort as opposed to the standard lexicographic sort is one of coping
+-- with the possible absence of the leading zeros in 'numbers' of files or directories.
 --
 -- Examples:
 --
@@ -173,7 +181,7 @@ cmpstrNaturally x y =
       else compare x y
 
 
--- | Reduces a string of names to initials
+-- | Reduces a string of names to initials.
 --
 -- Examples:
 --
@@ -204,13 +212,13 @@ makeInitials grandName =
 {- Tracers, mostly useless -}
 
 
--- | Trace path list
+-- | Trace path list.
 putFilePaths :: [FilePath] -> IO ()
 putFilePaths pathList = do
   mapM_ (\path -> putStrLn $ strp path) pathList
 
 
--- | Trace settings
+-- | Trace settings.
 printOptions :: Settings -> IO ()
 printOptions opt = do
   print (format ("verbose: "%w) (sVerbose opt))
