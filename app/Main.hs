@@ -14,6 +14,16 @@ import qualified Data.Text as T
 import System.Environment
 import qualified Control.Foldl as FL
 import Control.Monad.Extra
+import Data.IORef
+
+type Counter = Int -> IO Int
+
+makeCounter :: IO Counter
+makeCounter = do
+  r <- newIORef 0
+  return (\i -> do modifyIORef r (+i)
+                   readIORef r)
+
 
 data Settings = Settings
   { sVerbose           :: Bool
@@ -180,26 +190,19 @@ listDir src = do
   partitionM testdir list
 
 
--- ~ traverseFlatDst :: FilePath -> Int -> Int -> [Int] -> FilePath -> IO ()
--- ~ traverseFlatDst dstRoot total totw cnt srcDir = do
-  -- ~ (dirs, files) <- listDir srcDir
-  -- ~ let iterate = (\(count, file) -> putStrLn (printf "%d: %s" count (strp file)))
-  -- ~ mapM_  iterate (zip cnt files) -- tracing
-  -- ~ let traverse = traverseFlatDst dstRoot total totw cnt
-  -- ~ mapM_ traverse dirs
+traverseFlatDst :: FilePath -> Int -> Int -> Counter -> FilePath -> IO ()
+traverseFlatDst dstRoot total totw cnt srcDir = do
+  (dirs, files) <- listDir srcDir
+  let iterate = printPath cnt
+  mapM_  iterate files -- tracing
+  let traverse = traverseFlatDst dstRoot total totw cnt
+  mapM_ traverse dirs
 
 
-printPath :: (Int, FilePath) -> IO ()
-printPath (n, file) = do
+printPath :: Counter -> FilePath -> IO ()
+printPath counter file = do
+  n <- counter 1
   putStrLn (printf "%d : %s" n (strp file))
-
-traverseFlatDst :: FilePath -> IO ()
-traverseFlatDst =
-  let loop i srcDir = do
-        (dirs, files) <- listDir srcDir
-        mapM_ printPath $ zip [i..] files
-        mapM_ (loop (i + length files)) dirs
-  in  loop 0
 
 
 -- | Trace path list
@@ -210,9 +213,9 @@ putFilePaths pathList = do
 
 groom :: FilePath -> FilePath -> Int -> IO ()
 groom src dst total = do
-  (dirs, files) <- listDir src
+  counter <- makeCounter
   let totWidth = length $ show total
-  traverseFlatDst {-dst total totWidth [0..]-} src
+  traverseFlatDst dst total totWidth counter src
   putStrLn (printf "total: %d, width: %d" total totWidth)
 
 
