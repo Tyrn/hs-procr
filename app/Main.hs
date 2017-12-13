@@ -75,14 +75,15 @@ groom args total = do
   counter <- makeCounter
   let totWidth = length $ show total
   putHeader args
-  traverseFlatDst args (sDst args) total totWidth counter (wrap "") (sSrc args)
+  dst <- realpath (sDst args)
+  src <- realpath (sSrc args)
+  traverseFlatDst args dst total totWidth counter (wrap "") src
   putFooter args total
 
 
 -- | Sets boilerplate.
 buildAlbum :: Settings -> IO ()
 buildAlbum args = do
-  -- ~ printOptions args
   flatTree <- listTree (sSrc args)
   groom args (length flatTree)      -- Counting files for future reference
 
@@ -92,31 +93,6 @@ copyAlbum :: Settings -> IO ()
 copyAlbum args = do
   buildAlbum args
   
-
--- | Prints the header of the output to the console.
-putHeader :: Settings -> IO ()
-putHeader args = do
-  if (sVerbose args)
-    then putStr ""
-    else putStr "Start "
-
-
--- | Prints a single file copy info to the console.
-putCopy :: Settings -> Int -> Int -> Int -> FilePath -> IO ()
-putCopy args total totw n dstFile = do
-  if (sVerbose args)
-    then let fmt = "%" ++ (printf "%d" totw) ++ "d/%d %s\n"
-         in  putStr (printf fmt n total (strp dstFile))
-    else putStr "."
-
-
--- | Prints the footer of the output to the console.
-putFooter :: Settings -> Int -> IO ()
-putFooter args total = do
-  if (sVerbose args)
-    then putStr (printf "Total of %d file(s) copied\n" total)
-    else putStr (printf " Done(%d)\n" total)
-    
 
 main :: IO ()
 main = do

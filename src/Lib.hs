@@ -16,6 +16,9 @@ module Lib
     , Settings(..)
     , description
     , settingsP
+    , putHeader
+    , putCopy
+    , putFooter
     , putFilePaths
     , printOptions
     ) where
@@ -32,6 +35,7 @@ import Data.List hiding (find)
 import Data.Monoid
 import Sound.HTagLib
 import Data.Maybe
+
 
 {- Command line parser -}
 
@@ -85,10 +89,10 @@ description :: Description
 description =
   "pch \"Procrustes\" SmArT is a CLI utility for copying subtrees containing supported\n\
   \audio files in sequence, naturally sorted.\n\
-  \The end result is a \"flattened\" copy of the source subtree. \"Flattened\" means\n\
+  \The end result is a flattened copy of the source subtree. \"Flattened\" means\n\
   \that only a namesake of the root source directory is created, where all the files get\n\
-  \copied to, names prefixed with a serial number. Tags \"Track\" and \"Tracks Total\" \n\
-  \get set, tags \"Artist\" and \"Album\" can be replaced optionally.\n\
+  \copied to, names prefixed with a serial number. Tag \"Track Number\"\n\
+  \is set, tags \"Title\", \"Artist\", and \"Album\" can be replaced optionally.\n\
   \The writing process is strictly sequential: either starting with the number one file,\n\
   \or in the reversed order. This can be important for some mobile devices."
   
@@ -261,6 +265,34 @@ makeInitials grandName =
       splitPart = \part -> concat (part =~ ("[^ \t]+" :: String) :: [[String]])
       inits = (\part -> intercalate "." [[head w] | w <- splitPart part]) <$> parts
   in  T.unpack $ T.toUpper $ fromString $ intercalate "-" inits ++ "."
+
+
+{- Console output -}
+
+
+-- | Prints the header of the output to the console.
+putHeader :: Settings -> IO ()
+putHeader args = do
+  if (sVerbose args)
+    then putStr ""
+    else putStr "Start "
+
+
+-- | Prints a single file copy info to the console.
+putCopy :: Settings -> Int -> Int -> Int -> FilePath -> IO ()
+putCopy args total totw n dstFile = do
+  if (sVerbose args)
+    then let fmt = "%" ++ (printf "%d" totw) ++ "d/%d %s\n"
+         in  putStr (printf fmt n total (strp dstFile))
+    else putStr "."
+
+
+-- | Prints the footer of the output to the console.
+putFooter :: Settings -> Int -> IO ()
+putFooter args total = do
+  if (sVerbose args)
+    then putStr (printf "Total of %d file(s) copied\n" total)
+    else putStr (printf " Done(%d)\n" total)
 
 
 {- Tracers, mostly useless -}
