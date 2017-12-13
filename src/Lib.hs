@@ -12,6 +12,7 @@ module Lib
     , strStripNumbers
     , cmpstrNaturally
     , makeInitials
+    , setTagsToCopy
     , Settings(..)
     , description
     , settingsP
@@ -28,7 +29,9 @@ import qualified Data.Text as T
 import Text.Printf
 import Text.Regex.TDFA
 import Data.List hiding (find)
-
+import Data.Monoid
+import Sound.HTagLib
+import Data.Maybe
 
 {- Command line parser -}
 
@@ -92,6 +95,7 @@ description =
 
 {- Counter, mostly global -}
 
+
 -- | Represents a nonlocal counter.
 type Counter = Int -> IO Int
 
@@ -102,8 +106,58 @@ makeCounter = do
   r <- newIORef 0
   return (\i -> do modifyIORef r (+i)
                    readIORef r)
-                   
-                   
+
+
+{- Audio tags management -}
+
+
+-- | Makes custom title tag
+shapeTitle :: Settings -> Int -> String -> String -> Text
+shapeTitle args n fileName s =
+  T.pack (if (sFileTitleNum args)
+            then (printf "%d>%s" n fileName) -- Add Track Number to Title
+            else if (sFileTitle args)
+                   then fileName
+                   else (printf "%d %s" n s))
+
+
+-- | Sets tags to the destination file.
+setTagsToCopy :: Settings -> Int -> Int -> FilePath -> IO ()
+setTagsToCopy args total trackNum file
+
+  | (sArtistTag args) /= Nothing && isAlbumTag =
+
+      setTags (strp file) Nothing $
+               titleSetter (mkTitle $ st ((makeInitials $ T.unpack artist)
+                                           ++ " - " ++ (T.unpack album))) <>
+               artistSetter (mkArtist artist) <>
+               albumSetter (mkAlbum album) <> track
+
+  | (sArtistTag args) /= Nothing =
+
+      setTags (strp file) Nothing $
+               titleSetter (mkTitle $ st (T.unpack artist)) <>
+               artistSetter (mkArtist artist) <> track
+
+  | isAlbumTag =
+
+      setTags (strp file) Nothing $
+               titleSetter (mkTitle $ st (T.unpack album)) <>
+               albumSetter (mkAlbum album) <> track
+
+  | otherwise = return ()
+
+  where fileName   = strp $ dropExtension $ filename file
+        st         = shapeTitle args trackNum fileName
+        artist     = fromMaybe "*" (sArtistTag args)
+        album      = case (sUnifiedName args) of
+                       Just uname -> uname
+                       Nothing    -> fromMaybe "*" (sAlbumTag args)
+        isAlbumTag = (sAlbumTag args) /= Nothing || (sUnifiedName args) /= Nothing
+        track      = if (sDropTracknumber args)
+                       then mempty
+                       else trackNumberSetter (mkTrackNumber trackNum)
+
 
 {- FilePath helpers -}
 
@@ -201,12 +255,12 @@ cmpstrNaturally x y =
 -- "F-S.A-B.L."
 {-- >>> makeInitials "Arleigh\"31-knot\"Burke"-}
 {-- "A.B."-}
-makeInitials :: String -> Text
+makeInitials :: String -> String
 makeInitials grandName =
   let parts = splitOn "-" grandName
       splitPart = \part -> concat (part =~ ("[^ \t]+" :: String) :: [[String]])
       inits = (\part -> intercalate "." [[head w] | w <- splitPart part]) <$> parts
-  in  T.toUpper $ fromString $ intercalate "-" inits ++ "."
+  in  T.unpack $ T.toUpper $ fromString $ intercalate "-" inits ++ "."
 
 
 {- Tracers, mostly useless -}

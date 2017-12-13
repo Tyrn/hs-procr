@@ -55,8 +55,9 @@ copyFile args dstRoot total totw counter dstStep srcFile = do
   n <- counter 1
   let dst = shapeDst args dstRoot total totw n dstStep srcFile
   cp srcFile dst
+  setTagsToCopy args total n dst
   putCopy args total totw n dst
-
+  
 
 -- | Walks the source tree.
 traverseFlatDst :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
