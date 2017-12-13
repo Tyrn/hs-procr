@@ -14,8 +14,15 @@ import qualified Control.Foldl as FL
 import Control.Monad.Extra
 
 
--- | Serves a list of directories and a list of files
--- | of a given parent
+-- | Serves the list of all audio files in a given directory.
+listTree :: FilePath -> IO [FilePath]
+listTree src = do
+  lst <- fold (lstree src) FL.list
+  return (filter isAudioFile lst)
+
+
+-- | Serves the list of directories and the list of audio files
+-- of a given parent directory (immediate offspring).
 listDir :: Settings -> FilePath -> IO ([FilePath], [FilePath])
 listDir args src = do
   list <- fold (ls src) FL.list
@@ -27,6 +34,7 @@ listDir args src = do
   return (sDirs, sFiles)
 
 
+-- | Makes destination file path.
 shapeDst :: Settings -> FilePath -> Int -> Int -> Int -> FilePath -> FilePath -> FilePath
 shapeDst args dstRoot total totw n dstStep srcFile =
   let prefix = if (sStripDecorations args) && (sUnifiedName args) == Nothing
@@ -41,14 +49,16 @@ shapeDst args dstRoot total totw n dstStep srcFile =
   in  dstRoot </> dstStep </> fromString (prefix ++ name ++ ext)
 
 
+-- | Makes one copy from source to destination directory.
 copyFile :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
 copyFile args dstRoot total totw counter dstStep srcFile = do
   n <- counter 1
   let dst = shapeDst args dstRoot total totw n dstStep srcFile
   cp srcFile dst
-  putStrLn (printf "%d : %s" n (strp srcFile))
+  putCopy args total totw n dst
 
 
+-- | Walks the source tree.
 traverseFlatDst :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
 traverseFlatDst args dstRoot total totw counter dstStep srcDir = do
   (dirs, files) <- listDir args srcDir
@@ -58,31 +68,54 @@ traverseFlatDst args dstRoot total totw counter dstStep srcDir = do
   mapM_ traverse dirs
 
 
+-- | Starts walking the source tree according to the settings.
 groom :: Settings -> Int -> IO ()
 groom args total = do
   counter <- makeCounter
   let totWidth = length $ show total
+  putHeader args
   traverseFlatDst args (sDst args) total totWidth counter (wrap "") (sSrc args)
-  putStrLn (printf "total: %d, width: %d" total totWidth)
+  putFooter args total
 
 
-listTree :: FilePath -> IO [FilePath]
-listTree src = do
-  lst <- fold (lstree src) FL.list
-  return (filter isAudioFile lst)
-
-
+-- | Sets boilerplate.
 buildAlbum :: Settings -> IO ()
 buildAlbum args = do
-  printOptions args
+  -- ~ printOptions args
   flatTree <- listTree (sSrc args)
   groom args (length flatTree)      -- Counting files for future reference
 
 
+-- | Copies the album.
 copyAlbum :: Settings -> IO ()
 copyAlbum args = do
   buildAlbum args
+  
 
+-- | Prints the header of the output to the console.
+putHeader :: Settings -> IO ()
+putHeader args = do
+  if (sVerbose args)
+    then putStr ""
+    else putStr "Start "
+
+
+-- | Prints a single file copy info to the console.
+putCopy :: Settings -> Int -> Int -> Int -> FilePath -> IO ()
+putCopy args total totw n dstFile = do
+  if (sVerbose args)
+    then let fmt = "%" ++ (printf "%d" totw) ++ "d/%d %s\n"
+         in  putStr (printf fmt n total (strp dstFile))
+    else putStr "."
+
+
+-- | Prints the footer of the output to the console.
+putFooter :: Settings -> Int -> IO ()
+putFooter args total = do
+  if (sVerbose args)
+    then putStr (printf "Total of %d file(s) copied\n" total)
+    else putStr (printf " Done(%d)\n" total)
+    
 
 main :: IO ()
 main = do

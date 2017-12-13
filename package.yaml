@@ -34,6 +34,7 @@ dependencies:
 - foldl
 - extra
 - mtl
+- htaglib
 
 library:
   source-dirs: src
