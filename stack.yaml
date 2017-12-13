@@ -67,3 +67,4 @@ packages:
 docker:
   enable: true
   image: 4e3c147fca48
+#  repo: "fpco/stack-build"

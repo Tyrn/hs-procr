@@ -128,31 +128,26 @@ shapeTitle args n fileName s =
 -- | Sets tags to the destination file.
 setTagsToCopy :: Settings -> Int -> Int -> FilePath -> IO ()
 setTagsToCopy args total trackNum file
-
   | (sArtistTag args) /= Nothing && isAlbumTag =
-
-      setTags (strp file) Nothing $
-               titleSetter (mkTitle $ st ((makeInitials $ T.unpack artist)
-                                           ++ " - " ++ (T.unpack album))) <>
-               artistSetter (mkArtist artist) <>
-               albumSetter (mkAlbum album) <> track
+                 st $  titleSetter  (mkTitle $ tt ((makeInitials $ T.unpack artist)
+                                           ++ " - " ++ T.unpack album))
+                    <> artistSetter (mkArtist artist)
+                    <> albumSetter  (mkAlbum album)
+                    <> track
 
   | (sArtistTag args) /= Nothing =
+                 st $  titleSetter  (mkTitle $ tt $ T.unpack artist)
+                    <> artistSetter (mkArtist artist)
+                    <> track
 
-      setTags (strp file) Nothing $
-               titleSetter (mkTitle $ st (T.unpack artist)) <>
-               artistSetter (mkArtist artist) <> track
-
-  | isAlbumTag =
-
-      setTags (strp file) Nothing $
-               titleSetter (mkTitle $ st (T.unpack album)) <>
-               albumSetter (mkAlbum album) <> track
+  | isAlbumTag = st $  titleSetter  (mkTitle $ tt $ T.unpack album)
+                    <> albumSetter  (mkAlbum album)
+                    <> track
 
   | otherwise = return ()
 
-  where fileName   = strp $ dropExtension $ filename file
-        st         = shapeTitle args trackNum fileName
+  where st         = setTags (strp file) Nothing
+        tt         = shapeTitle args trackNum (strp $ dropExtension $ filename file)
         artist     = fromMaybe "*" (sArtistTag args)
         album      = case (sUnifiedName args) of
                        Just uname -> uname
