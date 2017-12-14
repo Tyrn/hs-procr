@@ -79,24 +79,24 @@ traverseTreeDst args dstRoot total totw counter dstStep srcDir = do
         mkdir (dstRoot </> step)
         traverseTreeDst   args dstRoot total totw counter step dir
   
-  mapM_ traverse                                                   dirs
-  mapM_ (copyFile         args dstRoot total totw counter dstStep) files
+  mapM_ traverse                                                     dirs
+  mapM_ (copyFile         args dstRoot total totw counter dstStep)   files
 
 
 -- | Walks the source tree.
-traverseFlatDst :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
-traverseFlatDst args dstRoot total totw counter dstStep srcDir = do
+traverseFlatDst :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> IO ()
+traverseFlatDst args dstRoot total totw counter srcDir = do
   (dirs, files)        <- listDir args srcDir
-  mapM_ (traverseFlatDst  args dstRoot total totw counter dstStep) dirs
-  mapM_ (copyFile         args dstRoot total totw counter dstStep) files
+  mapM_ (traverseFlatDst  args dstRoot total totw counter)           dirs
+  mapM_ (copyFile         args dstRoot total totw counter (wrap "")) files
 
 
 -- | Walks the source tree backwards.
-traverseFlatDstR :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
-traverseFlatDstR args dstRoot total totw counter dstStep srcDir = do
+traverseFlatDstR :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> IO ()
+traverseFlatDstR args dstRoot total totw counter srcDir = do
   (dirs, files)        <- listDir args srcDir
-  mapM_ (copyFile         args dstRoot total totw counter dstStep) files
-  mapM_ (traverseFlatDstR args dstRoot total totw counter dstStep) dirs
+  mapM_ (copyFile         args dstRoot total totw counter (wrap "")) files
+  mapM_ (traverseFlatDstR args dstRoot total totw counter)           dirs
 
 
 -- | Sets boilerplate.
@@ -114,8 +114,8 @@ buildAlbum args = do
   if (sTreeDst args)
     then        traverseTreeDst  args dst total totWidth counter (wrap "") src
     else if (sReverse args)
-           then traverseFlatDstR args dst total totWidth counter (wrap "") src
-           else traverseFlatDst  args dst total totWidth counter (wrap "") src
+           then traverseFlatDstR args dst total totWidth counter src
+           else traverseFlatDst  args dst total totWidth counter src
   putFooter args total
 
 

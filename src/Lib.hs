@@ -19,8 +19,6 @@ module Lib
     , putHeader
     , putCopy
     , putFooter
-    , putFilePaths
-    , printOptions
     ) where
 
 import Turtle hiding (printf, stdout, stderr, find)
@@ -288,34 +286,3 @@ putFooter args total = do
   if (sVerbose args)
     then putStr (printf "Total of %d file(s) copied\n" total)
     else putStr (printf " Done(%d)\n" total)
-
-
-{- Tracers, mostly useless -}
-
-
--- | Trace path list.
-putFilePaths :: [FilePath] -> IO ()
-putFilePaths pathList = do
-  mapM_ (\path -> putStrLn $ strp path) pathList
-
-
--- | Trace settings.
-printOptions :: Settings -> IO ()
-printOptions opt = do
-  print (format ("verbose: "%w) (sVerbose opt))
-  print (format ("droptracknumber: "%w) (sDropTracknumber opt))
-  print (format ("stripdecorations: "%w) (sStripDecorations opt))
-  print (format ("filetitle: "%w) (sFileTitle opt))
-  print (format ("filetitlenum: "%w) (sFileTitleNum opt))
-  print (format ("sortlex: "%w) (sSortLex opt))
-  print (format ("treedst: "%w) (sTreeDst opt))
-  print (format ("dropdst: "%w) (sDropDst opt))
-  print (format ("reverse: "%w) (sReverse opt))
-  print (format ("filetype: "%w) (sFileType opt))
-  print (format ("prependsubdirname: "%w) (sPrependSubdirName opt))
-  print (format ("unifiedname: "%w) (sUnifiedName opt))
-  print (format ("albumnum: "%w) (sAlbumNum opt))
-  print (format ("artisttag: "%w) (sArtistTag opt))
-  print (format ("albumtag: "%w) (sAlbumTag opt))
-  print (format ("src: "%fp) (sSrc opt))
-  print (format ("dst: "%fp) (sDst opt))
