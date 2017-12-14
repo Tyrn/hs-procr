@@ -21,17 +21,26 @@ listTree src = do
   return (filter isAudioFile lst)
 
 
+-- Builds compare function according to options (for listDir only)
+makeCompare :: Settings -> (FilePath -> FilePath -> Ordering)
+makeCompare args =
+  let path = \filePath -> strp $ dropExtension filePath
+      cmp = if (sSortLex args)
+              then \x y -> compare         (path x) (path y)
+              else \x y -> cmpstrNaturally (path x) (path y)
+  in  if (sReverse args)
+        then \x y -> cmp y x
+        else cmp
+
+
 -- | Serves the list of directories and the list of audio files
 -- of a given parent directory (immediate offspring).
 listDir :: Settings -> FilePath -> IO ([FilePath], [FilePath])
 listDir args src = do
+  let cmp = makeCompare args
   list <- fold (ls src) FL.list
   (dirs, files) <- partitionM testdir list
-  let sDirs  = sortBy (\x y -> cmpstrNaturally (strp x) (strp y)) dirs
-  let sFiles = sortBy (\x y -> cmpstrNaturally (strp $ dropExtension x)
-                                               (strp $ dropExtension y))
-                                               (filter isAudioFile files)
-  return (sDirs, sFiles)
+  return (sortBy cmp dirs, sortBy cmp (filter isAudioFile files))
 
 
 -- | Makes destination file path.
@@ -42,7 +51,7 @@ shapeDst args dstRoot total totw n dstStep srcFile =
                  else zeroPad n totw ++ "-"
       name   = case (sUnifiedName args) of
                  Just uName -> T.unpack uName
-                 Nothing    -> strp $ dropExtension $ filename srcFile
+                 Nothing    -> strp $ basename srcFile
       ext    = case extension srcFile of
                  Just ext   -> "." ++ T.unpack ext
                  Nothing    -> ""
@@ -52,40 +61,62 @@ shapeDst args dstRoot total totw n dstStep srcFile =
 -- | Makes one copy from source to destination directory.
 copyFile :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
 copyFile args dstRoot total totw counter dstStep srcFile = do
-  n <- counter 1
+  next <- counter 1
+  let n = if (sReverse args) then total - next + 1 else next
   let dst = shapeDst args dstRoot total totw n dstStep srcFile
   cp srcFile dst
   setTagsToCopy args total n dst
   putCopy args total totw n dst
+
+
+-- | Walks the source tree, recreates source tree at destination.
+traverseTreeDst :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
+traverseTreeDst args dstRoot total totw counter dstStep srcDir = do
+  (dirs, files)        <- listDir args srcDir
+
+  let traverse dir = do
+        let step = dstStep </> basename dir
+        mkdir (dstRoot </> step)
+        traverseTreeDst   args dstRoot total totw counter step dir
   
+  mapM_ traverse                                                   dirs
+  mapM_ (copyFile         args dstRoot total totw counter dstStep) files
+
 
 -- | Walks the source tree.
 traverseFlatDst :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
 traverseFlatDst args dstRoot total totw counter dstStep srcDir = do
-  (dirs, files) <- listDir args srcDir
-  let iterate = copyFile args dstRoot total totw counter dstStep
-  mapM_  iterate files
-  let traverse = traverseFlatDst args dstRoot total totw counter dstStep
-  mapM_ traverse dirs
+  (dirs, files)        <- listDir args srcDir
+  mapM_ (traverseFlatDst  args dstRoot total totw counter dstStep) dirs
+  mapM_ (copyFile         args dstRoot total totw counter dstStep) files
 
 
--- | Starts walking the source tree according to the settings.
-groom :: Settings -> Int -> IO ()
-groom args total = do
-  counter <- makeCounter
-  let totWidth = length $ show total
-  putHeader args
-  dst <- realpath (sDst args)
-  src <- realpath (sSrc args)
-  traverseFlatDst args dst total totWidth counter (wrap "") src
-  putFooter args total
+-- | Walks the source tree backwards.
+traverseFlatDstR :: Settings -> FilePath -> Int -> Int -> Counter -> FilePath -> FilePath -> IO ()
+traverseFlatDstR args dstRoot total totw counter dstStep srcDir = do
+  (dirs, files)        <- listDir args srcDir
+  mapM_ (copyFile         args dstRoot total totw counter dstStep) files
+  mapM_ (traverseFlatDstR args dstRoot total totw counter dstStep) dirs
 
 
 -- | Sets boilerplate.
 buildAlbum :: Settings -> IO ()
 buildAlbum args = do
-  flatTree <- listTree (sSrc args)
-  groom args (length flatTree)      -- Counting files for future reference
+  checkTree   <- listTree (sSrc args)
+  
+  dst         <- realpath (sDst args)
+  let total    = length checkTree
+  let totWidth = length $ show total
+  counter     <- makeCounter
+  src         <- realpath (sSrc args)
+  
+  putHeader args
+  if (sTreeDst args)
+    then        traverseTreeDst  args dst total totWidth counter (wrap "") src
+    else if (sReverse args)
+           then traverseFlatDstR args dst total totWidth counter (wrap "") src
+           else traverseFlatDst  args dst total totWidth counter (wrap "") src
+  putFooter args total
 
 
 -- | Copies the album.

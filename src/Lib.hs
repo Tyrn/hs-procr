@@ -147,7 +147,7 @@ setTagsToCopy args total trackNum file
   | otherwise = return ()
 
   where st         = setTags (strp file) Nothing
-        tt         = shapeTitle args trackNum (strp $ dropExtension $ filename file)
+        tt         = shapeTitle args trackNum (strp $ basename file)
         artist     = fromMaybe "*" (sArtistTag args)
         album      = case (sUnifiedName args) of
                        Just uname -> uname
@@ -230,8 +230,8 @@ cmpstrNaturally x y =
   let nx = strStripNumbers x
       ny = strStripNumbers y
   in  if nx /= [] && ny /=  []
-      then compare nx ny
-      else compare x y
+        then compare nx ny
+        else compare x y
 
 
 -- | Reduces a string of names to initials.
