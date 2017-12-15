@@ -75,7 +75,7 @@ traverseTreeDst args dstRoot total totw counter dstStep srcDir = do
   (dirs, files)        <- listDir args srcDir
 
   let traverse dir = do
-        let step = dstStep </> basename dir
+        let step = dstStep </> basename dir -- dir has NO trailing slash!
         mkdir (dstRoot </> step)
         traverseTreeDst   args dstRoot total totw counter step dir
   
@@ -99,9 +99,9 @@ traverseFlatDstR args dstRoot total totw counter srcDir = do
   mapM_ (traverseFlatDstR args dstRoot total totw counter)           dirs
 
 
--- | Sets boilerplate.
-buildAlbum :: Settings -> IO ()
-buildAlbum args = do
+-- | Copies the album.
+copyAlbum :: Settings -> IO ()
+copyAlbum args = do
   checkTree   <- listTree (sSrc args)
   
   dst         <- realpath (sDst args)
@@ -110,20 +110,30 @@ buildAlbum args = do
   counter     <- makeCounter
   src         <- realpath (sSrc args)
   
+  let srcName  = dirname src -- src HAS a trailing slash!
+  let prefix   = case (sAlbumNum args) of
+                   Just num -> zeroPad num 2 ++ "-"
+                   Nothing  -> ""
+  let artist   = case (sArtistTag args) of
+                   Just atag -> T.unpack atag ++ ""
+                   Nothing  -> ""
+  let baseDst  = case (sUnifiedName args) of
+                   Just uname -> wrap $ prefix ++ artist ++ T.unpack uname
+                   Nothing -> wrap $ prefix ++ (strp srcName)
+  let execDst  = dst </> if (sDropDst args) then (wrap "") else baseDst
+
+  if (sDropDst args)
+    then return ()
+    else mkdir execDst
+
   putHeader args
   if (sTreeDst args)
-    then        traverseTreeDst  args dst total totWidth counter (wrap "") src
+    then        traverseTreeDst  args execDst total totWidth counter (wrap "") src
     else if (sReverse args)
-           then traverseFlatDstR args dst total totWidth counter src
-           else traverseFlatDst  args dst total totWidth counter src
+           then traverseFlatDstR args execDst total totWidth counter src
+           else traverseFlatDst  args execDst total totWidth counter src
   putFooter args total
 
-
--- | Copies the album.
-copyAlbum :: Settings -> IO ()
-copyAlbum args = do
-  buildAlbum args
-  
 
 main :: IO ()
 main = do
