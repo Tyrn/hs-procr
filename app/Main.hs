@@ -13,7 +13,6 @@ import System.Environment
 import qualified Control.Foldl as FL
 import Control.Monad.Extra
 
-
 -- | Serves the list of all audio files in a given directory.
 listTree :: FilePath -> IO [FilePath]
 listTree src = do

@@ -35,6 +35,7 @@ dependencies:
 - extra
 - mtl
 - htaglib
+- system-filepath
 
 library:
   source-dirs: src

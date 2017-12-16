@@ -33,7 +33,8 @@ import Data.List hiding (find)
 import Data.Monoid
 import Sound.HTagLib
 import Data.Maybe
-
+import qualified Filesystem.Path.CurrentOS as FPS
+import Data.Either.Extra
 
 {- Command line parser -}
 
@@ -159,12 +160,10 @@ setTagsToCopy args total trackNum file
 {- FilePath helpers -}
 
 
--- | Extracts String From FilePath (unsafe and unofficial).
--- No double quotes allowed in paths.
+-- | Extracts String From FilePath
+-- (good until deprecated system-filepath removed).
 strp :: FilePath -> String
-strp path =
-  let parts = splitOn "\"" (show path)
-  in  parts !! 1
+strp path = T.unpack $ fromRight "" (FPS.toText path)
 
 
 -- | Constructs FilePath.
