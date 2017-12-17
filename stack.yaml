@@ -64,6 +64,7 @@ packages:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+# allow-newer: true
 docker:
   enable: true
   image: 4e3c147fca48
