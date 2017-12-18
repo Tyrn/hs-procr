@@ -1,4 +1,3 @@
-# hs-procr
 Procrustes SmArT
 ================
 
@@ -78,7 +77,7 @@ Examples
 
 ``Source Album $ pch -a "Peter Crowcroft" -g "Mice All Over" . /run/media/user/F8950/Audiobooks/``
 
-- Destination directory "/run/media/user/F8950/Audiobooks/Source Album/" is created;
+- Destination directory */run/media/user/F8950/Audiobooks/Source Album/* is created;
 
 - Track numbers are set according to the natural sort order (file names ..., 5, 6, 7, 8, 9, 10...;
 regardless of the absence of the leading zeroes);
@@ -88,3 +87,8 @@ regardless of the absence of the leading zeroes);
 - *Album* is set to *Mice All Over*;
 
 - *Title* is set to *1 P.C. - Mice All Over* for the first file, all titles enumerated;
+
+``Source Album $ pch -st . /run/media/user/F8950/Audiobooks/``
+
+- *Source Album* directory is copied to */run/media/user/F8950/Audiobooks/* in its entirety,
+without modification; sequential copy order, natural or lexicographical, is guaranteed.
