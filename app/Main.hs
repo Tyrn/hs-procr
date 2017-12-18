@@ -50,7 +50,7 @@ shapeDst args dstRoot total totw n dstStep srcFile =
                  else zeroPad n totw ++ "-"
       name   = case (sUnifiedName args) of
                  Just uName -> T.unpack uName
-                 Nothing    -> strp $ basename srcFile
+                 Nothing    -> strp $ baseName srcFile
       ext    = case extension srcFile of
                  Just ext   -> "." ++ T.unpack ext
                  Nothing    -> ""
@@ -74,7 +74,7 @@ traverseTreeDst args dstRoot total totw counter dstStep srcDir = do
   (dirs, files)        <- listDir args srcDir
 
   let traverse dir = do
-        let step = dstStep </> basename dir -- dir has NO trailing slash!
+        let step = dstStep </> baseName dir -- dir has NO trailing slash!
         mkdir (dstRoot </> step)
         traverseTreeDst   args dstRoot total totw counter step dir
   

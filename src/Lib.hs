@@ -5,6 +5,7 @@
 module Lib
     ( strp
     , wrap
+    , baseName
     , makeCounter
     , Counter
     , isAudioFile
@@ -146,7 +147,7 @@ setTagsToCopy args total trackNum file
   | otherwise = return ()
 
   where st         = setTags (strp file) Nothing
-        tt         = shapeTitle args trackNum (strp $ basename file)
+        tt         = shapeTitle args trackNum (strp $ baseName file)
         artist     = fromMaybe "*" (sArtistTag args)
         album      = case (sUnifiedName args) of
                        Just uname -> uname
@@ -169,6 +170,11 @@ strp path = T.unpack $ fromRight "" (FPS.toText path)
 -- | Constructs FilePath.
 wrap :: String -> FilePath
 wrap = fromString
+
+
+-- | Returns base name plain or dotted
+baseName :: FilePath -> FilePath
+baseName = dropExtension . filename
 
 
 {- String utilities -}
