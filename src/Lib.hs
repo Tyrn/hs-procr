@@ -181,13 +181,16 @@ baseName = dropExtension . filename
 
 
 -- | Returns True in case of audio file extension.
-isAudioFile :: FilePath -> Bool
-isAudioFile file =
+isAudioFile :: Settings -> FilePath -> Bool
+isAudioFile args file =
   let  ext = case extension file of
                Just ext -> (T.unpack $ T.toUpper ext)
                Nothing  -> ""
-  in   elem ext ["MP3", "M4A", "M4B", "OGG", "WMA", "FLAC"]
-       
+  in   elem ext checkList
+  where checkList = case (sFileType args) of
+                      Just ftype -> [dropWhile (=='.') (T.unpack $ T.toUpper ftype)]
+                      Nothing    -> ["MP3", "M4A", "M4B", "OGG", "WMA", "FLAC"]
+
 
 -- | Returns a zero-padded numeric literal.
 --

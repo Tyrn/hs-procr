@@ -13,11 +13,11 @@ import System.Environment
 import qualified Control.Foldl as FL
 import Control.Monad.Extra
 
--- | Serves the list of all audio files in a given directory.
-listTree :: FilePath -> IO [FilePath]
-listTree src = do
-  lst <- fold (lstree src) FL.list
-  return (filter isAudioFile lst)
+-- | Serves the list of all audio files in the source directory.
+listTree :: Settings -> IO [FilePath]
+listTree args = do
+  lst <- fold (lstree (sSrc args)) FL.list
+  return (filter (isAudioFile args) lst)
 
 
 -- Builds compare function according to options (for listDir only)
@@ -39,7 +39,7 @@ listDir args src = do
   let cmp = makeCompare args
   list <- fold (ls src) FL.list
   (dirs, files) <- partitionM testdir list
-  return (sortBy cmp dirs, sortBy cmp (filter isAudioFile files))
+  return (sortBy cmp dirs, sortBy cmp (filter (isAudioFile args) files))
 
 
 -- | Makes destination file path.
@@ -101,7 +101,7 @@ traverseFlatDstR args dstRoot total totw counter srcDir = do
 -- | Copies the album.
 copyAlbum :: Settings -> IO ()
 copyAlbum args = do
-  checkTree   <- listTree (sSrc args)
+  checkTree   <- listTree args
   
   dst         <- realpath (sDst args)
   let total    = length checkTree
