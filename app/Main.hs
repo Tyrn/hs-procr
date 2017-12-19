@@ -74,7 +74,7 @@ traverseTreeDst args dstRoot total totw counter dstStep srcDir = do
   (dirs, files)        <- listDir args srcDir
 
   let traverse dir = do
-        let step = dstStep </> baseName dir -- dir has NO trailing slash!
+        let step = dstStep </> filename dir -- dir has NO trailing slash!
         mkdir (dstRoot </> step)
         traverseTreeDst   args dstRoot total totw counter step dir
   
