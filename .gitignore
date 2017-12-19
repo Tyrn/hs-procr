@@ -3,3 +3,5 @@ hs-procr.cabal
 *~
 .kateproject
 tags
+*.geany
+*.marks
