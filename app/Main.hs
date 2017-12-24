@@ -40,6 +40,14 @@ listDir args src = do
   list <- fold (ls src) FL.list
   (dirs, files) <- partitionM testdir list
   return (sortBy cmp dirs, sortBy cmp (filter (isAudioFile args) files))
+  
+
+-- | Makes a file name prefix out of the Artist Tag, if there is any.
+artistPrefix :: Settings -> String
+artistPrefix args =
+  case (sArtistTag args) of
+    Just artistName -> T.unpack artistName ++ " - "
+    Nothing         -> ""
 
 
 -- | Makes destination file path.
@@ -49,7 +57,7 @@ shapeDst args dstRoot total totw n dstStep srcFile =
                  then ""
                  else zeroPad n totw ++ "-"
       name   = case (sUnifiedName args) of
-                 Just uName -> T.unpack uName
+                 Just uName -> artistPrefix args ++ T.unpack uName
                  Nothing    -> strp $ baseName srcFile
       ext    = case extension srcFile of
                  Just ext   -> "." ++ T.unpack ext
@@ -110,15 +118,13 @@ copyAlbum args = do
   src         <- realpath (sSrc args)
   
   let srcName  = dirname src -- src HAS a trailing slash!
-  let prefix   = case (sAlbumNum args) of
-                   Just num -> zeroPad num 2 ++ "-"
-                   Nothing  -> ""
-  let artist   = case (sArtistTag args) of
-                   Just atag -> T.unpack atag ++ ""
-                   Nothing  -> ""
+  let albumNum = case (sAlbumNum args) of
+                   Just num   -> zeroPad num 2 ++ "-"
+                   Nothing    -> ""
   let baseDst  = case (sUnifiedName args) of
-                   Just uname -> wrap $ prefix ++ artist ++ T.unpack uname
-                   Nothing -> wrap $ prefix ++ (strp srcName)
+                   Just uname -> wrap $ albumNum ++ artistPrefix args
+                                                 ++ T.unpack uname
+                   Nothing    -> wrap $ albumNum ++ (strp srcName)
   let execDst  = dst </> if (sDropDst args) then (wrap "") else baseDst
 
   if (sDropDst args)
