@@ -46,7 +46,7 @@ listDir args src = do
 artistPrefix :: Settings -> String
 artistPrefix args =
   case (sArtistTag args) of
-    Just artistName -> T.unpack artistName ++ " - "
+    Just artistName -> T.unpack artistName
     Nothing         -> ""
 
 
@@ -57,7 +57,7 @@ shapeDst args dstRoot total totw n dstStep srcFile =
                  then ""
                  else zeroPad n totw ++ "-"
       name   = case (sUnifiedName args) of
-                 Just uName -> artistPrefix args ++ T.unpack uName
+                 Just uName -> T.unpack uName ++ " - " ++ artistPrefix args
                  Nothing    -> strp $ baseName srcFile
       ext    = case extension srcFile of
                  Just ext   -> "." ++ T.unpack ext
@@ -122,7 +122,7 @@ copyAlbum args = do
                    Just num   -> zeroPad num 2 ++ "-"
                    Nothing    -> ""
   let baseDst  = case (sUnifiedName args) of
-                   Just uname -> wrap $ albumNum ++ artistPrefix args
+                   Just uname -> wrap $ albumNum ++ artistPrefix args ++ " - "
                                                  ++ T.unpack uname
                    Nothing    -> wrap $ albumNum ++ (strp srcName)
   let execDst  = dst </> if (sDropDst args) then (wrap "") else baseDst
