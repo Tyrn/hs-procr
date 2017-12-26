@@ -240,6 +240,22 @@ cmpstrNaturally x y =
         else compare x y
 
 
+-- | Removes all double quoted substrings, if any, from a string.
+--
+-- Examples:
+--
+-- >>> removeQuotedSubstrings "alfa"
+-- "alfa"
+-- >>> removeQuotedSubstrings "ngoro\"dup\"lai \"ming\""
+-- "ngoro lai  "
+removeQuotedSubstrings :: String -> String
+removeQuotedSubstrings str =
+  let quoteds  = filter (('"' ==) . head)
+               $ concat (str =~ ("\"(\\.|[^\"\\])*\"" :: String) :: [[String]])
+  in  T.unpack $ foldr (\quoted acc -> T.replace (T.pack quoted) " " acc)
+                       (T.pack str) quoteds
+  
+
 -- | Reduces a string of names to initials.
 --
 -- Examples:
@@ -250,7 +266,7 @@ cmpstrNaturally x y =
 -- "J.R.R.T."
 -- >>> makeInitials "e. B. Sledge"
 -- "E.B.S."
--- >>> makeInitials "Apsley  Cherry-Garrard"
+-- >>> makeInitials "Apsley  Cherry-Garrard "
 -- "A.C-G."
 -- >>> makeInitials "Windsor Saxe-\tCoburg - Gotha"
 -- "W.S-C-G."
@@ -258,11 +274,11 @@ cmpstrNaturally x y =
 -- "E.K---R."
 -- >>> makeInitials "Fitz-Simmons Ashton-Burke Leigh"
 -- "F-S.A-B.L."
-{-- >>> makeInitials "Arleigh\"31-knot\"Burke"-}
-{-- "A.B."-}
+-- >>> makeInitials "Arleigh\"31-knot\"Burke  "
+-- "A.B."
 makeInitials :: String -> String
 makeInitials grandName =
-  let parts = splitOn "-" grandName
+  let parts = splitOn "-" $ removeQuotedSubstrings grandName
       splitPart = \part -> concat (part =~ ("[^ \t]+" :: String) :: [[String]])
       inits = (\part -> intercalate "." [[head w] | w <- splitPart part]) <$> parts
   in  T.unpack $ T.toUpper $ fromString $ intercalate "-" inits ++ "."
