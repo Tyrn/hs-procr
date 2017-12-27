@@ -1,8 +1,33 @@
-Procrustes SmArT
-================
+# Procrustes SmArT
 
-Description
------------
+## Toolchain suggestions
+
+- downloadable image: [Haskell Docker image by FP Complete](https://hub.docker.com/r/fpco/stack-build/)
+- howto: [Docker integration](https://docs.haskellstack.org/en/stable/docker_integration/)
+- broader view: [Why Stack and Docker](https://www.fpcomplete.com/blog/2015/08/stack-docker)
+
+Basically, it's your project's `stack.yaml` configuration:
+```
+...
+docker:
+  enable: true
+  image: 4e3c147fca48
+```
+`image` :
+```
+$ docker image ls
+REPOSITORY          TAG      IMAGE ID       SIZE
+...
+fpco/stack-build    latest   4e3c147fca48   4.3GB
+...
+```
+Then your mainstay will be: 
+
+```
+$ stack --help | build | test | haddock |  ...
+```
+in your project's directory :smiley_cat:
+## Description
 **Procrustes SmArT** is a CLI utility for basic processing and copying
 of audio albums, mostly audiobooks of uncertain provenance to cheap mobile
 devices. Audiobooks in question can be poorly designed: track number tags
@@ -15,13 +40,11 @@ and directories are not modified in any way. Files are copied sequentially,
 by default file number one first, optionally in reverse order, as some
 mobile devices are copy-order sensitive.
 
-General syntax
---------------
+## General syntax
 
 ``$ pch [<options>] <source directory> <destination directory>``
 
-Options
--------
+## Options
 
 ``-h, --help``
 short description and options
@@ -72,8 +95,7 @@ artist tag name
 ``-g --album-tag ALBUM_TAG``
 album tag name
 
-Examples
---------
+## Examples
 
 ``Source Album $ pch -a "Peter Crowcroft" -g "Mice All Over" . /run/media/user/F8950/Audiobooks/``
 
