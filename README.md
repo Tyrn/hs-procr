@@ -24,7 +24,7 @@ fpco/stack-build    latest   4e3c147fca48   4.3GB
 Then your mainstay will be: 
 
 ```
-$ stack --help | build | test | haddock |  ...
+$ stack --help | build | test | ghci | haddock |  ...
 ```
 in your project's directory.
 
