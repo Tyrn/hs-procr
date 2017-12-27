@@ -26,7 +26,9 @@ Then your mainstay will be:
 ```
 $ stack --help | build | test | haddock |  ...
 ```
-in your project's directory :smiley_cat:
+in your project's directory.
+
+Linux only so far, sorry. Mac and Windows at your peril :smiley_cat:
 ## Description
 **Procrustes SmArT** is a CLI utility for basic processing and copying
 of audio albums, mostly audiobooks of uncertain provenance to cheap mobile
