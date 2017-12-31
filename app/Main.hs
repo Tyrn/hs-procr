@@ -3,7 +3,7 @@ module Main ( main
             ) where
 
 import Lib
-import Turtle hiding (printf, stdout, stderr, find)
+import Turtle hiding (printf, stdout, stderr, find, sortBy)
 import Prelude hiding (FilePath)
 import System.IO hiding (FilePath, stdout, stderr)
 import qualified Data.Text as T
