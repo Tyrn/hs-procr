@@ -299,7 +299,7 @@ putHeader args = do
 putCopy :: Settings -> Int -> Int -> Int -> FilePath -> IO ()
 putCopy args total totw n dstFile = do
   if (sVerbose args)
-    then let fmt = "%" ++ (printf "%d" totw) ++ "d/%d %s\n"
+    then let fmt = "%" ++ (printf "%d" totw) ++ "d\x2698%d %s\n"
          in  putStr (printf fmt n total (strp dstFile))
     else putStr "."
 

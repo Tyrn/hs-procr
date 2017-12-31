@@ -17,7 +17,7 @@ import Control.Monad.Extra
 listTree :: Settings -> IO [FilePath]
 listTree args = do
   lst <- fold (lstree (sSrc args)) FL.list
-  return (filter (isAudioFile args) lst)
+  return $ filter (isAudioFile args) lst
 
 
 -- Builds compare function according to options (for listDir only)
@@ -39,7 +39,7 @@ listDir args src = do
   let cmp = makeCompare args
   list <- fold (ls src) FL.list
   (dirs, files) <- partitionM testdir list
-  return (sortBy cmp dirs, sortBy cmp (filter (isAudioFile args) files))
+  return (sortBy cmp dirs, sortBy cmp $ filter (isAudioFile args) files)
   
 
 -- | Makes a file name prefix out of the Artist Tag, if there is any.
