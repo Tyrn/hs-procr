@@ -246,11 +246,11 @@ cmpstrNaturally x y =
 --
 -- >>> removeQuotedSubstrings "alfa"
 -- "alfa"
--- >>> removeQuotedSubstrings "ngoro\"dup\"lai \"ming\""
--- "ngoro lai  "
+-- >>> removeQuotedSubstrings "\"\"ngoro\"dup\"lai \"ming\""
+-- " ngoro lai  "
 removeQuotedSubstrings :: String -> String
 removeQuotedSubstrings str =
-  let quoteds  = filter (('"' ==) . head)
+  let quoteds  = filter (\s -> length s > 0 && head s == '"')
                $ concat (str =~ ("\"(\\.|[^\"\\])*\"" :: String) :: [[String]])
   in  T.unpack $ foldr (\quoted acc -> T.replace (T.pack quoted) " " acc)
                        (T.pack str) quoteds
