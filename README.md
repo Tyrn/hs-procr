@@ -28,6 +28,14 @@ $ stack --help | build | test | ghci | haddock |  ...
 ```
 in your project's directory.
 
+NB First build I've made with the `stack` from the repositories,
+then uninstalled it and enabled the new one.
+
+`~/.xprofile`:
+```
+export PATH=$HOME/.stack/programs/x86_64-linux/stack-2.1.3:$PATH
+```
+
 Linux only so far, sorry. Mac and Windows at your peril :smiley_cat:
 ## Description
 **Procrustes SmArT** is a CLI utility for basic processing and copying

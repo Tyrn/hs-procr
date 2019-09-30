@@ -5,3 +5,5 @@ hs-procr.cabal
 tags
 *.geany
 *.marks
+*.vim
+*.lock

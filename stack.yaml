@@ -16,7 +16,7 @@
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
 # resolver: lts-9.17
-resolver: lts-10.1
+resolver: lts-14.7
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -68,5 +68,5 @@ packages:
 # allow-newer: true
 docker:
   enable: true
-  image: 4e3c147fca48
+  image: 9adc774bb5e5
 #  repo: "fpco/stack-build"
