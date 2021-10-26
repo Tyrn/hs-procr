@@ -33,7 +33,7 @@ then uninstalled it and enabled the new one.
 
 `~/.xprofile`:
 ```
-export PATH=$HOME/.stack/programs/x86_64-linux/stack-2.1.3:$PATH
+export PATH=$HOME/.stack/programs/x86_64-linux/stack-2.7.3:$PATH
 ```
 
 Linux only so far, sorry. Mac and Windows at your peril :smiley_cat:
