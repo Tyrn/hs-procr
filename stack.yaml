@@ -68,5 +68,5 @@ packages:
 # allow-newer: true
 docker:
   enable: true
-  image: 9adc774bb5e5
+  image: 6b6ffff5478a
 #  repo: "fpco/stack-build"
